@@ -1,0 +1,39 @@
+name: "2m-csv-import"
+
+services:
+  # Backend service (php8.3)
+  csv_backend:
+    image: ahmedmgad/php:8.3-xdebug
+    hostname: csv_backend
+    user: "root:root"
+    container_name: csv_backend
+    working_dir: /var/www/html
+    volumes:
+      - ./code:/var/www/html
+      - ./config/php/conf.d:/usr/local/etc/php/conf.d/
+    command: [ "/bin/bash","-c","php-fpm -y /usr/local/etc/php-fpm.conf -R" ]
+    depends_on:
+      - csv_database
+
+  # Database (MySQL Server)
+  csv_database:
+    image: mysql
+    hostname: csv_database
+    container_name: csv_database
+    environment:
+      MYSQL_HOST: csv_database
+      MYSQL_DATABASE: csv
+      MYSQL_ROOT_PASSWORD: root
+
+  csv_pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: csv_pma
+    environment:
+      - PMA_ARBITRARY=0
+      - PMA_HOST=csv_database
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=root
+      - UPLOAD_LIMIT=100M
+    ports:
+      - 8080:80
